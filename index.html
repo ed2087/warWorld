@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>War Sandbox - AI Nations</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="game-title">🌍 War Sandbox</div>
+            <div class="game-stats">
+                <span id="turn-counter">Turn: 0</span>
+                <span id="country-count">Nations: 0</span>
+            </div>
+            <div class="controls">
+                <button id="pause-btn" class="btn">⏸ Pause</button>
+                <button id="reset-btn" class="btn">🔄 Reset</button>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main class="game-main">
+            <!-- Canvas -->
+            <div class="canvas-wrapper">
+                <canvas id="game-canvas"></canvas>
+            </div>
+
+            <!-- Side Panel (Info) -->
+            <aside class="side-panel" id="side-panel">
+                <div class="panel-header">
+                    <h3>📊 Game Info</h3>
+                    <button id="toggle-panel" class="btn-small">◀</button>
+                </div>
+                <div class="panel-content">
+                    <div class="info-section">
+                        <h4>Selected Nation</h4>
+                        <div id="selected-info">
+                            <p class="muted">Click a nation to view details</p>
+                        </div>
+                    </div>
+                    <div class="info-section">
+                        <h4>🎯 Game Settings</h4>
+                        <label>
+                            Speed: <span id="speed-value">2s</span>
+                            <input type="range" id="speed-slider" min="500" max="5000" value="2000" step="500">
+                        </label>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Event Log -->
+        <footer class="event-log">
+            <div class="log-header">📜 Event Log</div>
+            <div class="log-content" id="log-content">
+                <div class="log-entry">Game initialized...</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Add territory.js BEFORE game.js -->
+    <script src="js/unit.js"></script>
+    <script src="js/city.js"></script>
+    <script src="js/resource.js"></script>
+    <script src="js/aiController.js"></script>
+    <script src="js/territory.js"></script>  <!-- NEW! -->
+    <script src="js/controls.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
