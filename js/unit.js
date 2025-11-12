@@ -21,60 +21,59 @@ class Unit {
         this.state = 'moving';
     }
     
-    update(units, resources, cities) {
-        if (this.isDead) return;
-        
-        // Move towards target
-        const dx = this.targetX - this.x;
-        const dy = this.targetY - this.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance > 2) {
-            this.x += (dx / distance) * this.speed;
-            this.y += (dy / distance) * this.speed;
-        } else {
-            this.state = 'idle';
-            
-            // If carrying resources, try to return to city
-            if (this.carryingResources > 0) {
-                const city = cities.find(c => c.countryId === this.countryId);
-                if (city) {
-                    const distToCity = Math.hypot(city.x - this.x, city.y - this.y);
-                    if (distToCity < 20) {
-                        city.resources += this.carryingResources;
-                        this.carryingResources = 0;
-                    } else {
-                        this.setTarget(city.x, city.y);
-                    }
-                }
-            }
-        }
-        
-        // Check for nearby enemies
-        const nearbyEnemies = units.filter(u => 
-            !u.isDead && 
-            u.countryId !== this.countryId && 
-            Math.hypot(u.x - this.x, u.y - this.y) < 15
-        );
-        
-        if (nearbyEnemies.length > 0) {
-            this.state = 'fighting';
-            this.fight(nearbyEnemies[0]);
-        }
-        
-        // Check for nearby resources
-        if (this.carryingResources === 0) {
-            const nearbyResource = resources.find(r => 
-                !r.depleted && 
-                Math.hypot(r.x - this.x, r.y - this.y) < 10
-            );
-            
-            if (nearbyResource) {
-                this.state = 'gathering';
-                this.gather(nearbyResource);
-            }
-        }
+update(units, resources, cities) {
+    if (this.isDead) return;
+    
+    // Move towards target
+    const dx = this.targetX - this.x;
+    const dy = this.targetY - this.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance > 2) {
+        this.x += (dx / distance) * this.speed;
+        this.y += (dy / distance) * this.speed;
+        this.state = 'moving';
+    } else {
+        this.state = 'idle';
     }
+    
+    // Return resources to city
+    if (this.carryingResources > 0) {
+        const city = cities.find(c => c.countryId === this.countryId && !c.isDestroyed);
+        if (city) {
+            const distToCity = Math.hypot(city.x - this.x, city.y - this.y);
+            if (distToCity < 20) {
+                city.resources += this.carryingResources;
+                this.carryingResources = 0;
+            }
+        }
+        return; // Don't do anything else while carrying resources
+    }
+    
+    // AGGRESSIVE: Check for nearby enemies (increased range)
+    const nearbyEnemies = units.filter(u => 
+        !u.isDead && 
+        u.countryId !== this.countryId && 
+        Math.hypot(u.x - this.x, u.y - this.y) < 25  // Increased from 15 to 25
+    );
+    
+    if (nearbyEnemies.length > 0) {
+        this.state = 'fighting';
+        this.fight(nearbyEnemies[0]);
+        return;
+    }
+    
+    // Check for nearby resources (only if not fighting)
+    const nearbyResource = resources.find(r => 
+        !r.depleted && 
+        Math.hypot(r.x - this.x, r.y - this.y) < 15  // Increased from 10 to 15
+    );
+    
+    if (nearbyResource) {
+        this.state = 'gathering';
+        this.gather(nearbyResource);
+    }
+}
     
     fight(enemy) {
         // Simple combat

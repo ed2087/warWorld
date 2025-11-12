@@ -13,39 +13,40 @@ class City {
         this.garrison = 50; // defense strength
     }
     
-    update(units) {
-        if (this.isDestroyed) return;
-        
-        // Produce units
-        this.unitProductionCooldown--;
-        
-        if (this.unitProductionCooldown <= 0 && this.resources >= 20) {
-            this.spawnUnit(units);
-            this.resources -= 20;
-            this.unitProductionCooldown = this.unitProductionRate;
-        }
-        
-        // Generate resources slowly
-        this.resources = Math.min(500, this.resources + 0.5);
-        
-        // Check if under attack
-        const nearbyEnemies = units.filter(u => 
-            !u.isDead && 
-            u.countryId !== this.countryId && 
-            Math.hypot(u.x - this.x, u.y - this.y) < 30
-        );
-        
-        if (nearbyEnemies.length > 0) {
-            this.garrison -= nearbyEnemies.length * 0.1;
-            
-            if (this.garrison <= 0) {
-                this.isDestroyed = true;
-            }
-        } else {
-            // Slowly regenerate garrison
-            this.garrison = Math.min(50, this.garrison + 0.1);
-        }
+update(units) {
+    if (this.isDestroyed) return;
+    
+    // Produce units FASTER
+    this.unitProductionCooldown--;
+    
+    // Reduced cost and faster production
+    if (this.unitProductionCooldown <= 0 && this.resources >= 15) {  // Was 20
+        this.spawnUnit(units);
+        this.resources -= 15;  // Was 20
+        this.unitProductionCooldown = 80;  // Was 120 (faster!)
     }
+    
+    // Generate resources faster
+    this.resources = Math.min(500, this.resources + 0.8);  // Was 0.5
+    
+    // Check if under attack
+    const nearbyEnemies = units.filter(u => 
+        !u.isDead && 
+        u.countryId !== this.countryId && 
+        Math.hypot(u.x - this.x, u.y - this.y) < 30
+    );
+    
+    if (nearbyEnemies.length > 0) {
+        this.garrison -= nearbyEnemies.length * 0.2;  // Takes more damage
+        
+        if (this.garrison <= 0) {
+            this.isDestroyed = true;
+        }
+    } else {
+        // Slowly regenerate garrison
+        this.garrison = Math.min(50, this.garrison + 0.1);
+    }
+}
     
     spawnUnit(units) {
         // Random position around city

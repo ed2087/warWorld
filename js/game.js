@@ -1,4 +1,4 @@
-// Main Game Logic - UPDATED WITH TERRITORIES
+// Main Game Logic - COMPLETE WITH LIVE INFO UPDATES
 class WarSandbox {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
@@ -7,6 +7,7 @@ class WarSandbox {
         this.turn = 0;
         this.frame = 0;
         this.selectedCountry = null;
+        this.selectedCity = null;
         
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -87,6 +88,8 @@ class WarSandbox {
             this.init();
             this.turn = 0;
             this.frame = 0;
+            this.selectedCountry = null;
+            this.selectedCity = null;
             this.log('🔄 Game reset');
         });
         
@@ -162,10 +165,31 @@ class WarSandbox {
             }
         }
         
-        // Update UI
+        // Update UI counters
         const aliveCount = this.countries.filter(c => c.isAlive).length;
         document.getElementById('turn-counter').textContent = 'Turn: ' + this.turn;
         document.getElementById('country-count').textContent = 'Nations: ' + aliveCount;
+        
+        // Update selected info every frame
+        if (this.selectedCountry && this.selectedCity) {
+            const city = this.cities.find(c => c.countryId === this.selectedCountry.id && !c.isDestroyed);
+            if (city) {
+                this.updateSelectedInfo(city);
+            } else {
+                // City destroyed, clear selection
+                this.selectedCountry = null;
+                this.selectedCity = null;
+                document.getElementById('selected-info').innerHTML = '<p class="muted">Click a nation to view details</p>';
+            }
+        }
+        
+        // Check for victory
+        if (aliveCount === 1) {
+            const winner = this.countries.find(c => c.isAlive);
+            if (winner && this.frame % 120 === 0) {
+                this.log(`👑 ${winner.name} has achieved total domination!`);
+            }
+        }
     }
     
     render() {
@@ -201,6 +225,17 @@ class WarSandbox {
             unit.draw(this.ctx);
         }
         
+        // Highlight selected city
+        if (this.selectedCity && !this.selectedCity.isDestroyed) {
+            this.ctx.beginPath();
+            this.ctx.arc(this.selectedCity.x, this.selectedCity.y, 20, 0, Math.PI * 2);
+            this.ctx.strokeStyle = '#ffff00';
+            this.ctx.lineWidth = 3;
+            this.ctx.setLineDash([5, 5]);
+            this.ctx.stroke();
+            this.ctx.setLineDash([]);
+        }
+        
         this.ctx.restore();
     }
     
@@ -228,6 +263,7 @@ class WarSandbox {
             const dist = Math.hypot(city.x - x, city.y - y);
             if (dist < 15) {
                 this.selectedCountry = this.countries[city.countryId];
+                this.selectedCity = city;
                 this.updateSelectedInfo(city);
                 return;
             }
@@ -239,19 +275,53 @@ class WarSandbox {
         
         if (!city || city.isDestroyed) {
             info.innerHTML = '<p class="muted">City destroyed or not selected</p>';
+            this.selectedCountry = null;
+            this.selectedCity = null;
             return;
         }
         
         const unitCount = this.units.filter(u => u.countryId === city.countryId && !u.isDead).length;
         const territorySize = this.territoryMap.getTerritorySize(city.countryId);
+        const country = this.countries[city.countryId];
+        
+        // Get AI controller info
+        const ai = this.aiControllers[city.countryId];
+        const strategyIcons = {
+            'attack': '⚔️ Attacking',
+            'defend': '🛡️ Defending',
+            'gather': '💰 Gathering',
+            'expand': '🗺️ Expanding'
+        };
+        
+        // Count units by state
+        const myUnits = this.units.filter(u => u.countryId === city.countryId && !u.isDead);
+        const fighting = myUnits.filter(u => u.state === 'fighting').length;
+        const gathering = myUnits.filter(u => u.state === 'gathering').length;
+        const moving = myUnits.filter(u => u.state === 'moving').length;
         
         info.innerHTML = `
             <p><strong>${city.name}</strong></p>
-            <p style="color: ${city.color}">████</p>
+            <p style="color: ${city.color}; font-size: 1.2rem;">████</p>
+            <p>Status: ${country.isAlive ? '✅ Active' : '💀 Eliminated'}</p>
+            <hr style="margin: 0.5rem 0; border-color: var(--border)">
+            <p><strong>City Stats:</strong></p>
             <p>🏰 Garrison: ${Math.floor(city.garrison)}/50</p>
-            <p>💰 Resources: ${Math.floor(city.resources)}</p>
-            <p>🪖 Units: ${unitCount}</p>
-            <p>🗺️ Territory: ${territorySize} cells</p>
+            <p>💰 Resources: ${Math.floor(city.resources)}/500</p>
+            <p>⏱️ Next unit: ${Math.max(0, Math.floor(city.unitProductionCooldown / 60))}s</p>
+            <hr style="margin: 0.5rem 0; border-color: var(--border)">
+            <p><strong>Military:</strong></p>
+            <p>🪖 Total Units: ${unitCount}</p>
+            <p style="font-size: 0.8rem; margin-left: 1rem;">⚔️ Fighting: ${fighting}</p>
+            <p style="font-size: 0.8rem; margin-left: 1rem;">💰 Gathering: ${gathering}</p>
+            <p style="font-size: 0.8rem; margin-left: 1rem;">🚶 Moving: ${moving}</p>
+            <hr style="margin: 0.5rem 0; border-color: var(--border)">
+            <p><strong>Territory:</strong></p>
+            <p>🗺️ Size: ${territorySize} cells</p>
+            <hr style="margin: 0.5rem 0; border-color: var(--border)">
+            <p><strong>AI Strategy:</strong></p>
+            <p>${strategyIcons[ai.currentStrategy]}</p>
+            <p style="font-size: 0.8rem;">⚡ Aggression: ${Math.floor(ai.aggression)}/100</p>
+            <p style="font-size: 0.8rem;">🧠 Strategy: ${Math.floor(ai.strategy)}/100</p>
         `;
     }
     
