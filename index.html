@@ -5,19 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>War Sandbox - AI Nations</title>
+    <title>War Sandbox - God View</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="game-container">
         <!-- Top Bar -->
         <header class="top-bar">
-            <div class="game-title">🌍 War Sandbox</div>
+            <div class="game-title">🌍 War Sandbox - God View</div>
             <div class="game-stats">
                 <span id="turn-counter">Turn: 0</span>
+                <span id="year-counter">Year: 1000</span>
                 <span id="country-count">Nations: 0</span>
+                <span id="total-units">Units: 0</span>
             </div>
             <div class="controls">
+                <button id="speed-slow" class="btn btn-small">0.5x</button>
+                <button id="speed-normal" class="btn btn-small active">1x</button>
+                <button id="speed-fast" class="btn btn-small">2x</button>
                 <button id="pause-btn" class="btn">⏸ Pause</button>
                 <button id="reset-btn" class="btn">🔄 Reset</button>
             </div>
@@ -25,50 +30,101 @@
 
         <!-- Main Game Area -->
         <main class="game-main">
-            <!-- Canvas -->
-            <div class="canvas-wrapper">
-                <canvas id="game-canvas"></canvas>
+            <!-- Left Sidebar - Nation Stats -->
+            <aside class="left-panel">
+                <div class="panel-header">
+                    <h3>🏛️ Nations</h3>
+                    <button id="toggle-left" class="btn-icon">◀</button>
+                </div>
+                <div class="panel-content" id="nations-list">
+                    <!-- Dynamically populated -->
+                </div>
+            </aside>
+
+            <!-- Canvas Area -->
+            <div class="canvas-area">
+                <!-- Main Canvas -->
+                <div class="canvas-wrapper">
+                    <canvas id="game-canvas"></canvas>
+                </div>
+
+                <!-- Minimap -->
+                <div class="minimap-container">
+                    <div class="minimap-header">📍 Minimap</div>
+                    <canvas id="minimap-canvas"></canvas>
+                </div>
+
+                <!-- Info Overlay (bottom left) -->
+                <div class="info-overlay">
+                    <div class="info-card" id="hover-info" style="display: none;">
+                        <!-- Shows on hover -->
+                    </div>
+                </div>
             </div>
 
-            <!-- Side Panel (Info) -->
-            <aside class="side-panel" id="side-panel">
+            <!-- Right Sidebar - Detailed Info -->
+            <aside class="right-panel">
                 <div class="panel-header">
-                    <h3>📊 Game Info</h3>
-                    <button id="toggle-panel" class="btn-small">◀</button>
+                    <h3>📊 Analytics</h3>
+                    <button id="toggle-right" class="btn-icon">▶</button>
                 </div>
+                
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="selected">Selected</button>
+                    <button class="tab" data-tab="graphs">Graphs</button>
+                    <button class="tab" data-tab="military">Military</button>
+                </div>
+
+                <!-- Tab Content -->
                 <div class="panel-content">
-                    <div class="info-section">
-                        <h4>Selected Nation</h4>
+                    <!-- Selected Nation/City -->
+                    <div class="tab-content active" id="tab-selected">
                         <div id="selected-info">
-                            <p class="muted">Click a nation to view details</p>
+                            <p class="muted">Click a city to view details</p>
                         </div>
                     </div>
-                    <div class="info-section">
-                        <h4>🎯 Game Settings</h4>
-                        <label>
-                            Speed: <span id="speed-value">2s</span>
-                            <input type="range" id="speed-slider" min="500" max="5000" value="2000" step="500">
-                        </label>
+
+                    <!-- Graphs -->
+                    <div class="tab-content" id="tab-graphs">
+                        <h4>Power Over Time</h4>
+                        <canvas id="power-graph" width="280" height="150"></canvas>
+                        
+                        <h4 style="margin-top: 1rem;">Territory Size</h4>
+                        <canvas id="territory-graph" width="280" height="150"></canvas>
+                    </div>
+
+                    <!-- Military Analysis -->
+                    <div class="tab-content" id="tab-military">
+                        <h4>Army Compositions</h4>
+                        <div id="military-breakdown">
+                            <!-- Populated dynamically -->
+                        </div>
                     </div>
                 </div>
             </aside>
         </main>
 
-        <!-- Event Log -->
-        <footer class="event-log">
-            <div class="log-header">📜 Event Log</div>
+        <!-- Bottom Bar - Event Log -->
+        <footer class="bottom-bar">
+            <div class="log-tabs">
+                <button class="log-tab active" data-filter="all">All</button>
+                <button class="log-tab" data-filter="combat">⚔️ Combat</button>
+                <button class="log-tab" data-filter="economy">💰 Economy</button>
+                <button class="log-tab" data-filter="diplomacy">🤝 Diplomacy</button>
+            </div>
             <div class="log-content" id="log-content">
                 <div class="log-entry">Game initialized...</div>
             </div>
         </footer>
     </div>
 
-    <!-- Add territory.js BEFORE game.js -->
+    <!-- Scripts -->
     <script src="js/unit.js"></script>
     <script src="js/city.js"></script>
     <script src="js/resource.js"></script>
+    <script src="js/territory.js"></script>
     <script src="js/aiController.js"></script>
-    <script src="js/territory.js"></script>  <!-- NEW! -->
     <script src="js/controls.js"></script>
     <script src="js/game.js"></script>
 </body>
